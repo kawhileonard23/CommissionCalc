@@ -30,3 +30,41 @@ function handleLogin(event) {
         errorMessage.style.color = "red";
     }
 }
+
+// Wait until the DOM is fully loaded
+document.addEventListener("DOMContentLoaded", function () {
+    // Get elements
+    const commissionInput = document.getElementById("commissionInput");
+    const currentCommission = document.getElementById("currentCommission");
+    const commissionForm = document.getElementById("commissionForm");
+
+    // Load the saved commission from local storage (if it exists)
+    const savedCommission = localStorage.getItem("commission");
+    if (savedCommission) {
+        currentCommission.textContent = savedCommission + "%";
+    }
+
+    // Event listener for form submission
+    commissionForm.addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent page reload
+
+        // Get the entered commission value
+        const newCommission = commissionInput.value;
+
+        // Validate the input
+        if (newCommission === "" || isNaN(newCommission) || newCommission < 0) {
+            alert("Please enter a valid commission percentage.");
+            return;
+        }
+
+        // Save the commission to local storage
+        localStorage.setItem("commission", newCommission);
+
+        // Update the displayed commission
+        currentCommission.textContent = newCommission + "%";
+
+        // Clear the input field
+        commissionInput.value = "";
+        alert("Commission saved successfully!");
+    });
+});
