@@ -1,11 +1,3 @@
-import { testSupabaseConnection } from "./supabase.js";
-
-document.addEventListener("DOMContentLoaded", function () {
-    // Test Supabase connection on page load
-    testSupabaseConnection();
-});
-
-
 // Wait until the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("loginForm");

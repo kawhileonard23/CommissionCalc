@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Documents</title>
+</head>
+<body>
+    <div>
+        <h1>Import Monthly Report</h1>
+        <h3>Quickbooks -> Income by Customer Summary -> Select Month -> Export to Excel</h3>
+
+        <!-- File input for Excel files -->
+        <input type="file" id="fileInput" accept=".xlsx, .xls" />
+        <button id="uploadBtn">Upload</button>
+
+        <div id="fileStatus" style="color: green;"></div>
+
+        <a href="landing.html">Back</a>
+    </div>
+
+    <!-- Load XLSX library from JSDelivr -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <!-- Load your custom script as a regular script, not a module -->
+    <script src="../scripts/import.js"></script>
+</body>
+</html>
