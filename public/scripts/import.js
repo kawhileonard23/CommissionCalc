@@ -6,9 +6,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const uploadBtn = document.getElementById("uploadBtn");
     const fileStatus = document.getElementById("fileStatus");
 
-    // Global variable to track upload status
-    let uploaded = false;
     let workbookData = null;
+    let uploaded = false;
 
     // Function to handle file reading
     function handleFile(event) {
@@ -16,23 +15,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!file) {
             fileStatus.textContent = "No file selected.";
-            uploaded = false;
+            console.warn("No file selected.");
             return;
         }
+
+        console.log("Selected file:", file.name);
 
         const reader = new FileReader();
 
         reader.onload = function (e) {
             try {
                 const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: "array" });
+                console.log("File read as array buffer:", data);
 
-                // Check if the workbook has any sheets
-                if (workbook.SheetNames.length === 0) {
-                    throw new Error("Workbook contains no sheets.");
-                }
+                // Read the workbook with raw data
+                const workbook = XLSX.read(data, { type: "array", raw: true });
 
-                // Get the first sheet name
                 const firstSheetName = workbook.SheetNames[0];
                 const worksheet = workbook.Sheets[firstSheetName];
 
@@ -40,20 +38,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     throw new Error("Failed to access the first worksheet.");
                 }
 
-                // Convert the worksheet to JSON
+                // Convert worksheet to JSON with raw data
                 workbookData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                console.log("Workbook data after JSON conversion:", workbookData);
 
-                // Check if the data is empty
-                if (workbookData.length === 0) {
-                    throw new Error("The worksheet is empty.");
-                }
-
-                // Save to session storage
+                // Save the workbook data to session storage
                 sessionStorage.setItem("workbookData", JSON.stringify(workbookData));
-                fileStatus.textContent = "File loaded and saved successfully!";
-                console.log("Workbook loaded and saved:", workbookData);
+                fileStatus.textContent = "File loaded successfully!";
+                console.log("Workbook data saved to session storage.");
 
-                // Set uploaded to true on success
                 uploaded = true;
             } catch (err) {
                 fileStatus.textContent = "Error processing file: " + err.message;
@@ -74,12 +67,14 @@ document.addEventListener("DOMContentLoaded", function () {
     // Event listener for file upload
     fileInput.addEventListener("change", handleFile);
 
-    // Event listener for upload button click
+    // Redirect to the report page only if file upload was successful
     uploadBtn.addEventListener("click", function () {
         if (uploaded) {
+            console.log("Redirecting to report page...");
             location.href = "report.html";
         } else {
             alert("Please upload a valid file before proceeding.");
+            console.warn("File not uploaded successfully, cannot redirect.");
         }
     });
 });

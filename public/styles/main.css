@@ -29,3 +29,8 @@ input[type="text"], input[type="password"] {
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+
+.status-message {
+    color: green;
+    font-weight: bold;
+}
