@@ -37,44 +37,64 @@ document.addEventListener("DOMContentLoaded", function () {
                 const data = new Uint8Array(e.target.result);
                 console.log("File read as array buffer:", data);
 
-                // Read the workbook with raw data
-                const workbook = XLSX.read(data, { type: "array", raw: true });
+                // Read the workbook without converting to JSON initially
+                const workbook = XLSX.read(data, { type: "array" });
 
+                // Extract the first sheet
                 const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
+                console.log("First sheet name:", firstSheetName);
 
-                if (!worksheet) {
-                    throw new Error("Failed to access the first worksheet.");
+                const worksheet = workbook.Sheets[firstSheetName];
+                console.log("Raw worksheet data:", worksheet);
+
+                // Instead of using sheet_to_json, directly access each cell
+                const workbookData = [];
+                const range = XLSX.utils.decode_range(worksheet['!ref']);
+
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                    const row = [];
+                    for (let C = range.s.c; C <= range.e.c; ++C) {
+                        const cellAddress = { c: C, r: R };
+                        const cellRef = XLSX.utils.encode_cell(cellAddress);
+                        const cell = worksheet[cellRef];
+
+                        if (cell) {
+                            // Use formula (f) if available, otherwise use value (v)
+                            let cellValue = "";
+                            if (cell.f) {
+                                console.log(`Cell with formula detected at ${cellRef}:`, cell.f);
+                                cellValue = cell.f.replace("=", ""); // Remove '='
+                            } else if (cell.v !== undefined) {
+                                cellValue = cell.v;
+                            } else {
+                                cellValue = "";
+                            }
+                            row.push(cellValue);
+                        } else {
+                            row.push(""); // Empty cell
+                        }
+                    }
+                    workbookData.push(row);
                 }
 
-                // Log the entire worksheet structure for inspection
-                console.log("Worksheet object:", worksheet);
-
-                // Convert worksheet to JSON format
-                workbookData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                console.log("Workbook data after JSON conversion:", workbookData);
-
-                // Call data extraction
-                const extractedData = extractCompanyIncome(workbookData);
-                console.log("Extracted data from workbook:", extractedData);
+                console.log("Directly extracted workbook data:", workbookData);
 
                 // Save the workbook data to session storage
                 sessionStorage.setItem("workbookData", JSON.stringify(workbookData));
                 fileStatus.textContent = "File loaded successfully!";
                 console.log("Workbook data saved to session storage.");
 
-                uploaded = true;
+                // Pass the extracted data to the processing function
+                extractCompanyIncome(workbookData);
             } catch (err) {
                 fileStatus.textContent = "Error processing file: " + err.message;
                 console.error("Error processing file:", err);
-                uploaded = false;
             }
         };
 
         reader.onerror = function (e) {
             fileStatus.textContent = "Error reading file: " + e.target.error.name;
             console.error("Error loading file:", e.target.error);
-            uploaded = false;
         };
 
         reader.readAsArrayBuffer(file);
@@ -96,17 +116,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Extract company names and income from the uploaded Excel file
 function extractCompanyIncome(workbookData) {
-    console.log("Running extractCompanyIncome function...");
     const extractedData = [];
+
+    // Log the entire workbook data to verify format
+    console.log("Extracted workbook data:", workbookData);
 
     // Skip the first 5 rows and start from row 6 (index 5)
     workbookData.slice(5).forEach((row, index) => {
         const companyName = formatCellValue(row[0]);  // First column: Company name
-        let income = formatCellValue(row[1]);         // Second column: Income
-        let expenses = formatCellValue(row[2]);       // Third column: Expenses
-        let netIncome = income + expenses;
+        let income = formatCellValue(row[1]);         // Second column: Income (formula)
+        let expenses = formatCellValue(row[2]);       // Third column: Expenses (formula)
+        let netIncome = 0;
 
-        // Log the processed row for inspection
+        // Directly use the formula value as a string
+        income = typeof income === "string" ? income.replace("=", "") : income;
+        expenses = typeof expenses === "string" ? expenses.replace("=", "") : expenses;
+
+        // Try to convert to number if possible
+        income = parseFloat(income) || 0;
+        expenses = parseFloat(expenses) || 0;
+
+        // Manually calculate net income
+        netIncome = income + expenses;
+
         console.log(`Processed row ${index + 6}: ${companyName} | Income: ${income} | Expenses: ${expenses} | Net Income: ${netIncome}`);
 
         if (companyName) {
@@ -121,15 +153,31 @@ function extractCompanyIncome(workbookData) {
     return extractedData;
 }
 
+
 // Helper function to extract and format cell values
 function formatCellValue(cell) {
     if (typeof cell === "object") {
-        if (cell.w) return cell.w;
-        if (cell.f) return cell.f;
-        if (cell.v) return cell.v;
+        // Check if the cell has a formula (f field) and directly return it
+        if (cell.f) {
+            console.log("Raw formula detected:", cell.f);
+            return cell.f;
+        }
+        // Check if the cell has a direct numeric value (v field)
+        if (cell.v !== undefined && !isNaN(parseFloat(cell.v))) {
+            console.log("Direct numeric value detected:", cell.v);
+            return parseFloat(cell.v);
+        }
+        // Check if the cell has a formatted value (w field)
+        if (cell.w) {
+            console.log("Formatted value detected:", cell.w);
+            return cell.w;
+        }
     }
-    return cell || "";  // Return empty string if the cell is undefined or null
+    // Return cell content if it is a plain string or number
+    return cell || "";
 }
+
+
 
 
 // Match companies and calculate the commission total
