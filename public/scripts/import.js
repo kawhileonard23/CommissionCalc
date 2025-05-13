@@ -1,5 +1,5 @@
 // scripts/import.js
-
+console.log("Import.js script loaded and running.");
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
 // Supabase configuration
@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         reader.onload = function (e) {
             try {
+                uploaded = true
                 const data = new Uint8Array(e.target.result);
                 console.log("File read as array buffer:", data);
 
@@ -106,6 +107,8 @@ document.addEventListener("DOMContentLoaded", function () {
     // Redirect to the report page only if file upload was successful
     uploadBtn.addEventListener("click", function () {
         if (uploaded) {
+            console.log("Upload successful, generating report...");
+            generateCommissionReport();  // Explicitly call the report generation
             console.log("Redirecting to report page...");
             location.href = "report.html";
         } else {
@@ -113,6 +116,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.warn("File not uploaded successfully, cannot redirect.");
         }
     });
+    
 
 // Extract company names and income from the uploaded Excel file
 function extractCompanyIncome(workbookData) {
@@ -177,30 +181,56 @@ function formatCellValue(cell) {
     return cell || "";
 }
 
+async function fetchCompanyData() {
+    console.log("Fetching company data from Supabase...");
+    try {
+        const { data, error } = await supabase
+            .from("companies_change")
+            .select("name, owner, commission_rate");
 
+        if (error) throw error;
 
+        console.log("Company data from Supabase:", data);
+        return data;
+    } catch (err) {
+        console.error("Error fetching data from Supabase:", err.message);
+        return [];
+    }
+}
 
 // Match companies and calculate the commission total
 function calculateCommissions(extractedData, companyData) {
+    console.log("Starting company matching and commission calculation...");
     const commissionResults = {};
 
     extractedData.forEach(({ companyName, income }) => {
-        const company = companyData.find(
-            (item) => item.company_name.toLowerCase() === companyName.toLowerCase()
-        );
+        // Clean up the company name from the extracted data
+        const cleanedCompanyName = cleanCompanyName(companyName);
+
+        console.log(`Processing company: '${cleanedCompanyName}' (from file)`);
+
+        // Find the matching company in Supabase data (case-insensitive and trimmed)
+        const company = companyData.find((item) => {
+            const supabaseName = cleanCompanyName(item.company_name);
+            console.log(`Comparing with Supabase entry: '${supabaseName}'`);
+            return supabaseName === cleanedCompanyName;
+        });
 
         if (company) {
             const { owner, commission_rate } = company;
             const commission = income * (commission_rate / 100);
 
+            // Aggregate commission totals for each owner
             if (!commissionResults[owner]) {
                 commissionResults[owner] = 0;
             }
             commissionResults[owner] += commission;
 
-            console.log(`Matched: ${companyName}, Owner: ${owner}, Commission: ${commission}`);
+            console.log(
+                `Matched: ${cleanedCompanyName} | Owner: ${owner} | Income: ${income} | Commission Rate: ${commission_rate}% | Commission: ${commission}`
+            );
         } else {
-            console.warn(`No match found for company: ${companyName}`);
+            console.warn(`No match found for company: '${cleanedCompanyName}'`);
         }
     });
 
@@ -208,26 +238,48 @@ function calculateCommissions(extractedData, companyData) {
     return commissionResults;
 }
 
+// Function to clean and normalize company names
+function cleanCompanyName(name) {
+    if (typeof name !== "string") return "";
+    return name
+        .toLowerCase()    // Make lowercase for case-insensitive matching
+        .trim()           // Remove leading and trailing whitespace
+        .replace(/[\u200B-\u200D\uFEFF]/g, ""); // Remove any zero-width or hidden characters
+}
+
+
+
+
+// Generate the final commission report and save it
 async function generateCommissionReport() {
     try {
-        const workbookData = JSON.parse(sessionStorage.getItem("workbookData"));
-        if (!workbookData) throw new Error("No workbook data available.");
+        console.log("generateCommissionReport() started...");
+        console.log("Attempting to fetch company data from Supabase...");
 
+        console.log("Generating commission report...");
+
+        // Fetch data from Supabase
         const companyData = await fetchCompanyData();
-        if (!companyData || companyData.length === 0) throw new Error("Failed to fetch company data.");
 
+        // Extract data from the uploaded workbook
+        const workbookData = JSON.parse(sessionStorage.getItem("workbookData"));
         const extractedData = extractCompanyIncome(workbookData);
-        if (!extractedData || extractedData.length === 0) throw new Error("Failed to extract data from workbook.");
 
+        // Match companies and calculate commissions
         const commissionResults = calculateCommissions(extractedData, companyData);
+
+        // Save the commission results for later use
         sessionStorage.setItem("commissionResults", JSON.stringify(commissionResults));
-        console.log("Commission results saved to session storage.");
+
+        console.log("Commission results saved to session storage:", commissionResults);
+
+        alert("Commission report generated successfully!");
     } catch (error) {
         console.error("Error generating commission report:", error.message);
     }
 }
 
 
-document.addEventListener("DOMContentLoaded", generateCommissionReport);
-    
+
+
 });
