@@ -1,285 +1,168 @@
 // scripts/import.js
-console.log("Import.js script loaded and running.");
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-// Supabase configuration
-const supabaseUrl = "https://eqgklaeypeoeyywefbes.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxZ2tsYWV5cGVvZXl5d2VmYmVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NTExMjMsImV4cCI6MjA2MjIyNzEyM30.raO5j0aNpiuwxnPuW1o-23GVjaEps429vRyBtM0xDls";
-const supabase = createClient(supabaseUrl, supabaseKey);   // Extract company names and income from the uploaded Excel file
+// 1. This file no longer imports supabase-js directly; we call our proxy instead.
+//    So we remove: import { createClient } from ".../supabase-js";
 
-// Ensure the DOM is fully loaded before executing the script
-document.addEventListener("DOMContentLoaded", function () {
-    const fileInput = document.getElementById("fileInput");
-    const uploadBtn = document.getElementById("uploadBtn");
+// 2. We wait for DOMContentLoaded to hook up just the upload & parsing logic:
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("Import.js loaded and running.");
+  
+    // Grab our DOM elements
+    const fileInput  = document.getElementById("fileInput");
+    const uploadBtn  = document.getElementById("uploadBtn");
     const fileStatus = document.getElementById("fileStatus");
-
+  
     let workbookData = null;
-    let uploaded = false;
-
-    console.log("DOM fully loaded and event listeners attached.");
-
-    // Function to handle file reading
-    function handleFile(event) {
-        const file = event.target.files[0];
-
-        if (!file) {
-            fileStatus.textContent = "No file selected.";
-            console.warn("No file selected.");
-            return;
-        }
-
-        console.log("Selected file:", file.name);
-
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-            try {
-                uploaded = true
-                const data = new Uint8Array(e.target.result);
-                console.log("File read as array buffer:", data);
-
-                // Read the workbook without converting to JSON initially
-                const workbook = XLSX.read(data, { type: "array" });
-
-                // Extract the first sheet
-                const firstSheetName = workbook.SheetNames[0];
-                console.log("First sheet name:", firstSheetName);
-
-                const worksheet = workbook.Sheets[firstSheetName];
-                console.log("Raw worksheet data:", worksheet);
-
-                // Instead of using sheet_to_json, directly access each cell
-                const workbookData = [];
-                const range = XLSX.utils.decode_range(worksheet['!ref']);
-
-                for (let R = range.s.r; R <= range.e.r; ++R) {
-                    const row = [];
-                    for (let C = range.s.c; C <= range.e.c; ++C) {
-                        const cellAddress = { c: C, r: R };
-                        const cellRef = XLSX.utils.encode_cell(cellAddress);
-                        const cell = worksheet[cellRef];
-
-                        if (cell) {
-                            // Use formula (f) if available, otherwise use value (v)
-                            let cellValue = "";
-                            if (cell.f) {
-                                console.log(`Cell with formula detected at ${cellRef}:`, cell.f);
-                                cellValue = cell.f.replace("=", ""); // Remove '='
-                            } else if (cell.v !== undefined) {
-                                cellValue = cell.v;
-                            } else {
-                                cellValue = "";
-                            }
-                            row.push(cellValue);
-                        } else {
-                            row.push(""); // Empty cell
-                        }
-                    }
-                    workbookData.push(row);
-                }
-
-                console.log("Directly extracted workbook data:", workbookData);
-
-                // Save the workbook data to session storage
-                sessionStorage.setItem("workbookData", JSON.stringify(workbookData));
-                fileStatus.textContent = "File loaded successfully!";
-                console.log("Workbook data saved to session storage.");
-
-                // Pass the extracted data to the processing function
-                extractCompanyIncome(workbookData);
-            } catch (err) {
-                fileStatus.textContent = "Error processing file: " + err.message;
-                console.error("Error processing file:", err);
-            }
-        };
-
-        reader.onerror = function (e) {
-            fileStatus.textContent = "Error reading file: " + e.target.error.name;
-            console.error("Error loading file:", e.target.error);
-        };
-
-        reader.readAsArrayBuffer(file);
-    }
-
-    // Event listener for file upload
+    let uploaded     = false;
+  
+    // 3. Handle file selection and parse the XLSX manually
     fileInput.addEventListener("change", handleFile);
-
-    // Redirect to the report page only if file upload was successful
-    uploadBtn.addEventListener("click", function () {
-        if (uploaded) {
-            console.log("Upload successful, generating report...");
-            generateCommissionReport();  // Explicitly call the report generation
-            console.log("Redirecting to report page...");
-            location.href = "report.html";
-        } else {
-            alert("Please upload a valid file before proceeding.");
-            console.warn("File not uploaded successfully, cannot redirect.");
-        }
-    });
-    
-
-// Extract company names and income from the uploaded Excel file
-function extractCompanyIncome(workbookData) {
-    const extractedData = [];
-
-    // Log the entire workbook data to verify format
-    console.log("Extracted workbook data:", workbookData);
-
-    // Skip the first 5 rows and start from row 6 (index 5)
-    workbookData.slice(5).forEach((row, index) => {
-        const companyName = formatCellValue(row[0]);  // First column: Company name
-        let income = formatCellValue(row[1]);         // Second column: Income (formula)
-        let expenses = formatCellValue(row[2]);       // Third column: Expenses (formula)
-        let netIncome = 0;
-
-        // Directly use the formula value as a string
-        income = typeof income === "string" ? income.replace("=", "") : income;
-        expenses = typeof expenses === "string" ? expenses.replace("=", "") : expenses;
-
-        // Try to convert to number if possible
-        income = parseFloat(income) || 0;
-        expenses = parseFloat(expenses) || 0;
-
-        // Manually calculate net income
-        netIncome = income + expenses;
-
-        console.log(`Processed row ${index + 6}: ${companyName} | Income: ${income} | Expenses: ${expenses} | Net Income: ${netIncome}`);
-
-        if (companyName) {
-            extractedData.push({ companyName, income, expenses, netIncome });
-            console.log(`Extracted: ${companyName} | Income: ${income} | Expenses: ${expenses} | Net Income: ${netIncome}`);
-        } else {
-            console.warn(`Skipped invalid or empty row: ${index + 6}`);
-        }
-    });
-
-    console.log("Final extracted company income data:", extractedData);
-    return extractedData;
-}
-
-
-// Helper function to extract and format cell values
-function formatCellValue(cell) {
-    if (typeof cell === "object") {
-        // Check if the cell has a formula (f field) and directly return it
-        if (cell.f) {
-            console.log("Raw formula detected:", cell.f);
-            return cell.f;
-        }
-        // Check if the cell has a direct numeric value (v field)
-        if (cell.v !== undefined && !isNaN(parseFloat(cell.v))) {
-            console.log("Direct numeric value detected:", cell.v);
-            return parseFloat(cell.v);
-        }
-        // Check if the cell has a formatted value (w field)
-        if (cell.w) {
-            console.log("Formatted value detected:", cell.w);
-            return cell.w;
-        }
-    }
-    // Return cell content if it is a plain string or number
-    return cell || "";
-}
-
-async function fetchCompanyData() {
-    console.log("Fetching company data from Supabase...");
-    try {
-        const { data, error } = await supabase
-            .from("companies_change")
-            .select("name, owner, commission_rate");
-
-        if (error) throw error;
-
-        console.log("Company data from Supabase:", data);
-        return data;
-    } catch (err) {
-        console.error("Error fetching data from Supabase:", err.message);
-        return [];
-    }
-}
-
-// Match companies and calculate the commission total
-function calculateCommissions(extractedData, companyData) {
-    console.log("Starting company matching and commission calculation...");
-    const commissionResults = {};
-
-    extractedData.forEach(({ companyName, income }) => {
-        // Clean up the company name from the extracted data
-        const cleanedCompanyName = cleanCompanyName(companyName);
-
-        console.log(`Processing company: '${cleanedCompanyName}' (from file)`);
-
-        // Find the matching company in Supabase data (case-insensitive and trimmed)
-        const company = companyData.find((item) => {
-            const supabaseName = cleanCompanyName(item.company_name);
-            console.log(`Comparing with Supabase entry: '${supabaseName}'`);
-            return supabaseName === cleanedCompanyName;
-        });
-
-        if (company) {
-            const { owner, commission_rate } = company;
-            const commission = income * (commission_rate / 100);
-
-            // Aggregate commission totals for each owner
-            if (!commissionResults[owner]) {
-                commissionResults[owner] = 0;
+  
+    function handleFile(event) {
+      const file = event.target.files[0];
+      if (!file) {
+        fileStatus.textContent = "No file selected.";
+        return;
+      }
+      console.log("Selected file:", file.name);
+  
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          uploaded = true;
+          const data     = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheet    = workbook.Sheets[workbook.SheetNames[0]];
+          console.log("Raw worksheet object:", sheet);
+  
+          // Extract every row/column, pull 'f' (formula) or 'v' field
+          const range = XLSX.utils.decode_range(sheet["!ref"]);
+          const rows  = [];
+  
+          for (let R = range.s.r; R <= range.e.r; ++R) {
+            const row = [];
+            for (let C = range.s.c; C <= range.e.c; ++C) {
+              const ref  = XLSX.utils.encode_cell({ r: R, c: C });
+              const cell = sheet[ref];
+              let   val  = "";
+  
+              if (cell) {
+                if (cell.f) {
+                  // Always strip the leading "="
+                  val = cell.f.replace(/^=/, "");
+                } else if (cell.v !== undefined) {
+                  val = cell.v;
+                }
+              }
+              row.push(val);
             }
-            commissionResults[owner] += commission;
-
-            console.log(
-                `Matched: ${cleanedCompanyName} | Owner: ${owner} | Income: ${income} | Commission Rate: ${commission_rate}% | Commission: ${commission}`
-            );
-        } else {
-            console.warn(`No match found for company: '${cleanedCompanyName}'`);
+            rows.push(row);
+          }
+  
+          workbookData = rows;
+          sessionStorage.setItem("workbookData", JSON.stringify(rows));
+          fileStatus.textContent = "File loaded successfully!";
+          console.log("Parsed workbookData:", rows);
+  
+        } catch (err) {
+          fileStatus.textContent = "Error processing file: " + err.message;
+          console.error(err);
         }
-    });
-
-    console.log("Final commission results:", commissionResults);
-    return commissionResults;
-}
-
-// Function to clean and normalize company names
-function cleanCompanyName(name) {
-    if (typeof name !== "string") return "";
-    return name
-        .toLowerCase()    // Make lowercase for case-insensitive matching
-        .trim()           // Remove leading and trailing whitespace
-        .replace(/[\u200B-\u200D\uFEFF]/g, ""); // Remove any zero-width or hidden characters
-}
-
-
-
-
-// Generate the final commission report and save it
-async function generateCommissionReport() {
-    try {
-        console.log("generateCommissionReport() started...");
-        console.log("Attempting to fetch company data from Supabase...");
-
-        console.log("Generating commission report...");
-
-        // Fetch data from Supabase
-        const companyData = await fetchCompanyData();
-
-        // Extract data from the uploaded workbook
-        const workbookData = JSON.parse(sessionStorage.getItem("workbookData"));
-        const extractedData = extractCompanyIncome(workbookData);
-
-        // Match companies and calculate commissions
-        const commissionResults = calculateCommissions(extractedData, companyData);
-
-        // Save the commission results for later use
-        sessionStorage.setItem("commissionResults", JSON.stringify(commissionResults));
-
-        console.log("Commission results saved to session storage:", commissionResults);
-
-        alert("Commission report generated successfully!");
-    } catch (error) {
-        console.error("Error generating commission report:", error.message);
+      };
+  
+      reader.onerror = err => {
+        fileStatus.textContent = "Error reading file: " + err.error.name;
+        console.error(err);
+      };
+  
+      reader.readAsArrayBuffer(file);
     }
-}
-
-
-
-
-});
+  
+    // 4. Only now, once the user clicks Upload, do we fetch & generate the report:
+    uploadBtn.addEventListener("click", async () => {
+      if (!uploaded) {
+        alert("Please upload a valid file first.");
+        return;
+      }
+      console.log("Upload confirmed—fetching company data via proxy…");
+  
+      const companyData = await fetchCompanyData();
+      if (!companyData.length) {
+        alert("Could not load company data. Check console for errors.");
+        return;
+      }
+  
+      // Extract & match
+      const extracted = extractCompanyIncome(workbookData);
+      const commissions = calculateCommissions(extracted, companyData);
+  
+      sessionStorage.setItem("commissionResults", JSON.stringify(commissions));
+      console.log("Final commission results:", commissions);
+      alert("Commission report generated successfully!");
+  
+      // If you want to redirect:
+      // window.location.href = "report.html";
+    });
+  
+    // 5. Proxy-based fetch (avoids CSP / CORS issues)
+    async function fetchCompanyData() {
+      try {
+        const res = await fetch(
+          "https://commissioncalc-6uruhrvym-kawhileonard23s-projects.vercel.app/api/getCompanies",
+          { method: "GET" }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        console.log("Data from proxy:", data);
+        return data;
+      } catch (err) {
+        console.error("Error fetching via proxy:", err);
+        return [];
+      }
+    }
+  
+    // 6. XLSX → cleaned JSON for matching
+    function extractCompanyIncome(rows) {
+      const out = [];
+      // skip header rows (here, first 5 rows)
+      rows.slice(5).forEach((r, i) => {
+        const name    = cleanCompanyName(r[0]);
+        const income  = parseFloat(r[1]) || 0;
+        const expense = parseFloat(r[2]) || 0;
+        const net     = income + expense;
+        if (name) {
+          out.push({ companyName: name, income, expense, net });
+          console.log(`Row ${i+6}:`, name, income, expense, net);
+        }
+      });
+      return out;
+    }
+  
+    // 7. Match against proxy data
+    function calculateCommissions(extracted, companies) {
+      const totals = {};
+      extracted.forEach(({ companyName, income }) => {
+        const match = companies.find(c =>
+          cleanCompanyName(c.company_name) === companyName
+        );
+        if (match) {
+          const commission = income * (match.commission_rate / 100);
+          totals[match.owner] = (totals[match.owner] || 0) + commission;
+          console.log(`Matched ${companyName} → ${match.owner}:`, commission);
+        } else {
+          console.warn("No match for:", companyName);
+        }
+      });
+      return totals;
+    }
+  
+    // 8. Normalize names for reliable matching
+    function cleanCompanyName(s) {
+      return String(s || "")
+        .toLowerCase()
+        .trim()
+        .replace(/[\u200B-\u200D\uFEFF]/g, "");
+    }
+  
+  }); // end DOMContentLoaded
+  
