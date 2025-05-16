@@ -100,26 +100,35 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("Final commission results:", commissions);
       alert("Commission report generated successfully!");
   
-      // If you want to redirect:
-      // window.location.href = "report.html";
+       window.location.href = "report.html";
     });
   
     // 5. Proxy-based fetch (avoids CSP / CORS issues)
     async function fetchCompanyData() {
+      const url = "https://eqgklaeypeoeyywefbes.supabase.co/rest/v1/companies_change?select=company_name,owner,commission_rate";
+      const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxZ2tsYWV5cGVvZXl5d2VmYmVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDY2NTExMjMsImV4cCI6MjA2MjIyNzEyM30.raO5j0aNpiuwxnPuW1o-23GVjaEps429vRyBtM0xDls";  // grab this from your Supabase dashboard
+    
       try {
-        const res = await fetch(
-          "https://commissioncalc-6uruhrvym-kawhileonard23s-projects.vercel.app/api/getCompanies",
-          { method: "GET" }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            "apikey": anonKey,
+            "Authorization": `Bearer ${anonKey}`,
+            "Content-Type": "application/json"
+          }
+        });
+        if (!res.ok) {
+          throw new Error(`Supabase returned ${res.status}`);
+        }
         const data = await res.json();
-        console.log("Data from proxy:", data);
+        console.log("Fetched from Supabase REST:", data);
         return data;
       } catch (err) {
-        console.error("Error fetching via proxy:", err);
+        console.error("Error fetching from Supabase REST:", err);
         return [];
       }
     }
+    
   
     // 6. XLSX → cleaned JSON for matching
     function extractCompanyIncome(rows) {
@@ -141,14 +150,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // 7. Match against proxy data
     function calculateCommissions(extracted, companies) {
       const totals = {};
-      extracted.forEach(({ companyName, income }) => {
+      extracted.forEach(({ companyName, net }) => {
         const match = companies.find(c =>
           cleanCompanyName(c.company_name) === companyName
         );
         if (match) {
-          const commission = income * (match.commission_rate / 100);
-          totals[match.owner] = (totals[match.owner] || 0) + commission;
-          console.log(`Matched ${companyName} → ${match.owner}:`, commission);
+          if (net > 0) {
+            const commission = net * (match.commission_rate / 100);
+            totals[match.owner] = (totals[match.owner] || 0) + commission;
+            console.log(`Matched ${companyName} → ${match.owner}:`, commission);
+          } 
+          console.log(`Matched ${companyName} → ${match.owner}:`, 0);
         } else {
           console.warn("No match for:", companyName);
         }

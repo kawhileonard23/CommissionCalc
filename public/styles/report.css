@@ -1,0 +1,9 @@
+/* public/styles/report.css */
+body {
+    font-family: sans-serif;
+    padding: 1rem;
+  }
+  #report p {
+    margin: 0.5rem 0;
+  }
+  
