@@ -1,4 +1,6 @@
-// scripts/import.js
+import { requireAuth } from "./authGuard.js";
+await requireAuth();
+
 document.addEventListener("DOMContentLoaded", () => {
   // ---------- DOM ----------
   const fileInput  = document.getElementById("fileInput");

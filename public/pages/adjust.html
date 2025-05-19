@@ -1,28 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Change Commission Structure</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Adjust Commission Rates</title>
+  <link rel="stylesheet" href="../styles/main.css" />
+
+  <!-- tiny page-specific style -->
+  <style>
+    body      { font-family:sans-serif; max-width:26rem; margin:2rem auto }
+    input     { width:6rem }
+    #status   { margin-top:.5rem }
+  </style>
 </head>
 <body>
-    <div>
-        <h1>Adjust Commissions</h1>
-        <h2>Your Current Commission is <span id="currentCommission">Not Set</span></h2>
-        
-        <div>
-            <form id="commissionForm">
-                <div>
-                    <input type="percent" id="commissionInput" class="change-num" placeholder="Value" required>
-                </div>
 
-                <button type="save" class="btn">Save</button>
-                <p id="statusMessage"></p>
-            </form>
-        </div>
-        <a href="landing.html">Back</a>
-    </div>
-    <script src="../scripts/main.js" defer></script>
-    <script src="../scripts/supabase.js"></script>
+  <h1>Adjust Commissions</h1>
+
+  <!-- current values appear here -->
+  <div id="rates">Loading current rates…</div>
+
+  <!-- edit form -->
+  <form id="rateForm">
+    <p>
+      <label>Legacy&nbsp;% 
+        <input type="number" step="0.01" id="legacyInput" required />
+      </label>
+    </p>
+    <p>
+      <label>New&nbsp;% 
+        <input type="number" step="0.01" id="newInput" required />
+      </label>
+    </p>
+    <button type="submit">Save</button>
+    <span id="status"></span>
+  </form>
+
+  <p><a href="landing.html">Back</a></p>
+
+  <!-- Auth guard first: redirects to login if not signed in -->
+  <script type="module" src="../scripts/authGuard.js"></script>
+
+  <!-- Page logic -->
+  <script type="module" src="../scripts/adjust.js" defer></script>
 </body>
 </html>

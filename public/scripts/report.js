@@ -1,4 +1,5 @@
-// public/scripts/report.js
+import { requireAuth } from "./authGuard.js";
+await requireAuth();
 
 // 1. Grab stored commissionResults
 const raw = sessionStorage.getItem('commissionResults') || '{}';

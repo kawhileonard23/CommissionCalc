@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Landing</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Landing</title>
 </head>
 <body>
-    <div>
-        <h1>What would you like to do today?</h1>
-        <a href="import.html"><button>Create A Commission Report</button></a>
-        <a href="adjust.html"><button>Adjust Commission Details</button></a>
-        <a href="help.html"><button>View Guide</button></a>
-    </div>
+
+  <h1>What would you like to do today?</h1>
+
+  <a href="import.html"><button>Create A Commission Report</button></a>
+  <a href="adjust.html"><button>Adjust Commission Details</button></a>
+  <a href="help.html"><button>View Guide</button></a>
+
+  <!-- Log-out button -->
+  <button id="logoutBtn">Log out</button>
+
+  <!-- single external module: guard + logout -->
+  <script type="module" src="../scripts/landing.js" defer></script>
 </body>
 </html>

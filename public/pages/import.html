@@ -7,9 +7,13 @@
   <link rel="stylesheet" href="../styles/main.css">
 </head>
 <body>
+  <script type="module">
+    import { requireAuth } from "../scripts/authGuard.js";
+    await requireAuth();          // redirects if not logged-in
+  </script>
   <div>
     <h1>Import Monthly Report</h1>
-    <h3>QuickBooks → Income by Customer Summary → Select Month → Export to Excel</h3>
+    <h3>QuickBooks → Standard Reports -> Income by Customer Summary → Select Month/Year → Export to Excel</h3>
 
     <input type="file" id="fileInput" accept=".xlsx,.xls">
 
@@ -42,6 +46,7 @@
   <!-- XLSX lib -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <!-- your modules, both deferred -->
+  <script type="module" src="../scripts/landing.js" defer></script>
   <script type="module" src="../scripts/import.js" defer></script>
   <script type="module" src="../scripts/main.js" defer></script>
 </body>

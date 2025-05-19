@@ -1,35 +1,47 @@
-const functions = require("firebase-functions");
-const {createClient} = require("@supabase/supabase-js");
+const functions  = require("firebase-functions");
+const fetch      = (...args) => import("node-fetch").then(({default: f}) => f(...args));
 
-const supabaseUrl = "https://eqgklaeypeoeyywefbes.supabase.co";
-const supabaseKey = functions.config().supabase.key;
-const supabase = createClient(supabaseUrl, supabaseKey);
+// grab secret
+const SERVICE_KEY = functions.config().supabase.service_role;
+const SUPABASE_URL = "https://eqgklaeypeoeyywefbes.supabase.co";
 
-exports.getCompanies = functions.https.onRequest(async (req, res) => {
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    res.set("Access-Control-Allow-Origin", "*");
-    res.set("Access-Control-Allow-Methods", "GET,OPTIONS");
-    res.set("Access-Control-Allow-Headers", "Content-Type");
-    return res.status(204).send("");
-  }
-
-  // Allow the browser to call us from any origin
+// POST body: { legacy: 1.5, new: 10 }
+exports.updateRates = functions.https.onRequest(async (req, res) => {
   res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "POST,OPTIONS");
+
+  if (req.method === "OPTIONS") return res.status(204).end();
+  if (req.method !== "POST")    return res.status(405).send("POST only");
+
+  const { legacy, new: newer } = req.body || {};
+  if (legacy == null || newer == null) return res.status(400).send("Missing rates");
 
   try {
-    const {data, error} = await supabase
-        .from("companies_change")
-        .select("company_name,owner,commission_rate");
+    // Legacy row
+    await fetch(`${SUPABASE_URL}/rest/v1/commission_values?type=eq.Legacy`, {
+      method: "PATCH",
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ value: legacy })
+    });
 
-    if (error) {
-      console.error("Supabase returned error:", error.message);
-      return res.status(500).json({error: error.message});
-    }
+    // New row
+    await fetch(`${SUPABASE_URL}/rest/v1/commission_values?type=eq.New`, {
+      method: "PATCH",
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ value: newer })
+    });
 
-    return res.json(data);
+    return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error("Unexpected error:", err.message);
-    return res.status(500).json({error: err.message});
+    console.error(err);
+    return res.status(500).send(err.message);
   }
 });
