@@ -1,9 +1,69 @@
-/* public/styles/report.css */
+/* ---- shared minimal center card ---------------------------------------- */
 body {
-    font-family: sans-serif;
-    padding: 1rem;
-  }
-  #report p {
-    margin: 0.5rem 0;
-  }
-  
+  margin: 0;
+  background: #f5f7fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #222;
+}
+
+#card {
+  width: 100%;
+  max-width: 28rem;
+  padding: 2rem 2.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
+  text-align: center;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 0 0 1.5rem;
+}
+
+/* ---- table-like layout for the report rows ----------------------------- */
+.report-table {
+  display: grid;
+  grid-template-columns: 1fr auto;      /* owner | amount */
+  gap: .4rem 1rem;
+  text-align: left;
+  margin-bottom: 1.25rem;
+}
+
+.report-table p {
+  margin: 0;                            /* remove default spacing */
+  padding: .3rem 0;
+  display: contents;                    /* allow grid child cells */
+}
+
+/* first word (owner) -> left cell, amount -> right cell */
+.report-table p::before,
+.report-table p::after {
+  content: attr(data-owner) /attr(data-amount);
+}
+
+/* Because report.js inserts textContent only,
+   we re-style the <p> via flex to separate owner & value  */
+.report-table p {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #eef1f4;
+  font-size: .97rem;
+}
+
+.report-table p:last-child { border-bottom: none; }
+
+.report-table p span.amount {
+  font-weight: 600;
+}
+
+/* ---- Back link ---------------------------------------------------------- */
+.back-link {
+  color: #4b7bec;
+  text-decoration: none;
+}
+.back-link:hover { text-decoration: underline; }

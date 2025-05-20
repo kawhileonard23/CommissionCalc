@@ -1,12 +1,12 @@
-/* styles/main.css */
+/* ── your existing rules (keep) ─────────────────────────── */
 body, html {
     margin: 0;
     padding: 0;
     height: 100%;
     font-family: Arial, sans-serif;
-}
-
-.wrapper {
+  }
+  
+  .wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -14,23 +14,285 @@ body, html {
     padding: 20px;
     border: 1px solid #ddd;
     border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-
-.input-box {
-    margin: 10px 0;
-}
-
-input[type="text"], input[type="password"] {
+    box-shadow: 0 4px 8px rgba(0,0,0,.1);
+  }
+  
+  .input-box { margin: 10px 0; }
+  
+  input[type="text"],
+  input[type="password"] {
     width: 250px;
     padding: 8px;
     margin: 5px 0;
     border: 1px solid #ccc;
     border-radius: 5px;
+  }
+  
+  .status-message { color: green; font-weight: bold; }
+  
+  /* ── new minimalist login styles (append) ──────────────── */
+  *,
+  *::before,
+  *::after { box-sizing: border-box; }
+  
+  body {
+    background: #f5f7fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #222;
+  }
+  
+  #app {
+    width: 100%;
+    max-width: 22rem;
+    padding: 2rem 2.5rem;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgba(0,0,0,.08);
+    text-align: center;
+  }
+  
+  h1 { font-size: 1.4rem; margin: 0 0 1.5rem; color:#333; }
+  
+  form { display: grid; gap: 1rem; }
+  
+  .input-box input {
+    width: 100%;
+    padding: .65rem .75rem;
+    font-size: 1rem;
+    border: 1px solid #ccd1d5;
+    border-radius: 8px;
+    transition: border-color .2s;
+  }
+  .input-box input:focus {
+    outline: none;
+    border-color: #4b7bec;
+  }
+  
+  .btn {
+    padding: .75rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #fff;
+    background: #4b7bec;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .btn:hover,
+  .btn:focus { background:#3a63c8; }
+  
+  #errorMessage {
+    min-height: 1.25rem;
+    font-size: .9rem;
+    color:#e74c3c;
+    margin-top:.25rem;
+  }
+
+  /* ---------- Import page styles --------------------------- */
+#card {
+  width: 100%;
+  max-width: 26rem;
+  padding: 2rem 2.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
+  margin: 2rem auto;
+}
+
+#card h1 {
+  font-size: 1.35rem;
+  margin: 0 0 1rem;
+}
+
+#card h3 {
+  font-size: .95rem;
+  font-weight: 400;
+  color: #555;
+  margin: 0 0 1.25rem;
+  line-height: 1.4;
+}
+
+input[type="file"] {
+  margin-bottom: 1rem;
+}
+
+.report-date-inputs {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.report-date-inputs select,
+.report-date-inputs input[type="number"] {
+  padding: .4rem .5rem;
+  border: 1px solid #ccd1d5;
+  border-radius: 6px;
+  font-size: .95rem;
+}
+
+#uploadBtn {
+  display: inline-block;
+  padding: .6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  background: #4b7bec;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+#uploadBtn:hover,
+#uploadBtn:focus { background:#3a63c8; }
+
+#fileStatus {
+  margin-top: .75rem;
+  font-size: .9rem;
+  min-height: 1.2rem;
+}
+
+a.back-link {
+  display: inline-block;
+  margin-top: 1.25rem;
+  color: #4b7bec;
+  text-decoration: none;
+}
+a.back-link:hover { text-decoration: underline; }
+
+/* ---------- Landing page enhancements ------------------- */
+.landing-card h1 {
+  font-size: 1.6rem;
+  margin-bottom: .25rem;
+}
+
+.landing-card .subtitle {
+  font-size: .95rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+.action-grid {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.action-btn {
+  display: block;
+  padding: .9rem 1rem;
+  text-align: center;
+  border-radius: 10px;
+  background: #4b7bec;
+  color: #fff;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background .2s, transform .15s;
+}
+
+.action-btn:hover,
+.action-btn:focus {
+  background: #3a63c8;
+  transform: translateY(-2px);
+}
+
+.action-btn.secondary {
+  background: #e1e6f9;
+  color: #27499d;
+}
+
+.action-btn.secondary:hover,
+.action-btn.secondary:focus {
+  background: #c8d2f4;
+}
+
+.logout-btn {
+  appearance: none;
+  border: none;
+  background: none;
+  color: #4b7bec;
+  font-size: .95rem;
+  cursor: pointer;
+  padding: .4rem .6rem;
+  transition: color .2s;
+}
+
+.logout-btn:hover,
+.logout-btn:focus { color:#3a63c8; }
+
+/* ---------- Adjust page styles ------------------------------------------ */
+.adjust-card h1 {
+  font-size: 1.45rem;
+  margin-bottom: 1rem;
+}
+
+.rates-box {
+  font-size: .95rem;
+  margin-bottom: 1.25rem;
+}
+
+.rate-form {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.rate-form label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: .95rem;
+}
+
+.rate-form input[type="number"] {
+  width: 6rem;
+  padding: .45rem .55rem;
+  border: 1px solid #ccd1d5;
+  border-radius: 6px;
+  text-align: right;
+}
+
+.save-btn {
+  width: 100%;
 }
 
 .status-message {
-    color: green;
-    font-weight: bold;
+  display: block;
+  margin-top: .5rem;
+  font-size: .9rem;
+  min-height: 1.2rem;
+}
+
+.back-link {
+  color: #4b7bec;
+  text-decoration: none;
+}
+
+.back-link:hover { text-decoration: underline; }
+
+/* ---------- Help page styles -------------------------------------------- */
+.help-card h1 {
+  font-size: 1.45rem;
+  margin-bottom: 1rem;
+}
+
+.help-card .contact {
+  font-size: .95rem;
+  margin-bottom: 1rem;
+}
+
+.help-list {
+  list-style-type: disc;
+  padding-left: 1.2rem;
+  text-align: left;
+  margin: 0 0 1.5rem;
+}
+
+.help-list li {
+  margin: .4rem 0;
+  line-height: 1.4;
 }

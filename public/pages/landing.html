@@ -1,22 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>Landing</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Dashboard • CommissionCalc</title>
+  <link rel="stylesheet" href="../styles/main.css" />
 </head>
 <body>
+  <div id="card" class="landing-card">
+    <h1>Welcome to CommissionCalc</h1>
+    <p class="subtitle">What would you like to do today?</p>
 
-  <h1>What would you like to do today?</h1>
+    <div class="action-grid">
+      <a href="import.html"  class="action-btn">Create a Commission Report</a>
+      <a href="adjust.html"  class="action-btn">Adjust Commission Details</a>
+      <a href="help.html"    class="action-btn secondary">View Guide</a>
+    </div>
 
-  <a href="import.html"><button>Create A Commission Report</button></a>
-  <a href="adjust.html"><button>Adjust Commission Details</button></a>
-  <a href="help.html"><button>View Guide</button></a>
+    <button id="logoutBtn" class="logout-btn">Log out</button>
+  </div>
 
-  <!-- Log-out button -->
-  <button id="logoutBtn">Log out</button>
-
-  <!-- single external module: guard + logout -->
+  <!-- page guard + logout wiring -->
   <script type="module" src="../scripts/landing.js" defer></script>
 </body>
 </html>

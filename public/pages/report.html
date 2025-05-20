@@ -1,23 +1,21 @@
-<!-- public/pages/report.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Commission Report</title>
-  <!-- external CSS -->
-  <link rel="stylesheet" href="../styles/report.css">
+  <link rel="stylesheet" href="../styles/report.css" />
 </head>
 <body>
-  <script type="module">
-    import { requireAuth } from "../scripts/authGuard.js";
-    await requireAuth();          // redirects if not logged-in
-  </script>
-  <h1>Monthly Commission Report</h1>
-  <div id="report">Loading…</div>
-  <!-- external JS -->
-  <script type="module" src="../scripts/landing.js" defer></script>
-  <script src="../scripts/report.js" defer></script>
-  <script src="../scripts/main.js" defer></script>
-  <a href="landing.html">Back</a>
+  <div id="card">
+    <h1>Monthly Commission Report</h1>
+
+    <!-- Report rows will be injected here by report.js -->
+    <div id="report" class="report-table">Loading…</div>
+
+    <a href="landing.html" class="back-link">← Back</a>
+  </div>
+
+  <!-- Page logic (ES-module so the import in report.js works) -->
+  <script type="module" src="../scripts/report.js" defer></script>
 </body>
 </html>
