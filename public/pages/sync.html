@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Sync Companies</title>
+  <link rel="stylesheet" href="../styles/main.css" />
+</head>
+<body>
+  <div id="card" class="sync-card">
+    <h1>Sync Companies from Copper</h1>
+
+    <!-- accept either CSV or Excel -->
+    <input type="file" id="fileInput" accept=".csv,.xlsx" />
+
+    <div class="btn-row">
+      <button id="compareBtn" class="btn">Compare</button>
+      <button id="syncBtn"    class="btn secondary" disabled>Sync</button>
+    </div>
+
+    <div id="status" class="status-message">Awaiting file…</div>
+
+    <!-- just add the wrapper div -->
+    <div id="previewWrapper" class="preview-wrapper hidden">
+        <table id="previewTable" class="preview">
+            <thead><tr><th>Company</th><th>Owner</th><th>Start Date</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    
+
+    <a href="landing.html" class="back-link">← Back</a>
+  </div>
+
+  <!-- parsers -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- page logic -->
+  <script type="module" src="../scripts/sync.js" defer></script>
+</body>
+</html>
