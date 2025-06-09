@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inactive Companies</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+</head>
+<body>
+    <div id="card">
+        <h1>View Inactive Companies</h1>
+
+        <ol>
+            <li>Go to Quickbooks</li>
+            <li>Reports -> Standard Reports</li>
+            <li>Choose Sales by Customer Summary</li>
+            <li>Change the dates from 13 months ago to the current month</li>
+            <li>Click Compare in the top right corner, and check Previous Period, $ Change, % Change</li>
+            <li>Click Export and Export to Excel in the top right corner</li>
+            <li>Import here and view inactive companies</li>
+        </ol>
+
+        <input type="file" id="fileInput" accept=".xlsx,.xls" />
+        <button id="viewBtn" class="btn">View Companies</button>
+
+        <a href="landing.html" class="back-link">← Back</a>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script type="module" src="../scripts/inactive.js" defer></script>
+</body>
+</html>
+</html>

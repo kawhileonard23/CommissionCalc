@@ -1,4 +1,4 @@
-
+//import.js
 import { requireAuth } from "./authGuard.js";
 await requireAuth();
 
@@ -119,13 +119,17 @@ function calculateCommissions(extracted, companies, rates) {
   const repMonth = sessionStorage.getItem("reportMonth");
   const repYear  = sessionStorage.getItem("reportYear");
   const totals   = {};
+  let unclaimedCompanies = []
 
   // Create report date as end of the selected month
   const reportDate = new Date(parseInt(repYear), getMonthNumber(repMonth) + 1, 0); // Day 0 of next month gives us last day of current month
   
   extracted.forEach(({ companyName, net }) => {
     const comp = companies.find(c => clean(c.company_name) === companyName);
-    if (!comp) return;
+    if (!comp) {
+      unclaimedCompanies.push(companyName);
+      return;
+    }
 
     const startDate = new Date(comp.start_date);
     
@@ -140,6 +144,7 @@ function calculateCommissions(extracted, companies, rates) {
     const owner   = comp.owner;
     totals[owner] = (totals[owner] || 0) + net * (ratePct / 100);
   });
+  sessionStorage.setItem('unclaimedCompanies', JSON.stringify(unclaimedCompanies));
   return totals;
 }
 
