@@ -120,20 +120,37 @@ function calculateCommissions(extracted, companies, rates) {
   const repYear  = sessionStorage.getItem("reportYear");
   const totals   = {};
 
+  // Create report date as end of the selected month
+  const reportDate = new Date(parseInt(repYear), getMonthNumber(repMonth) + 1, 0); // Day 0 of next month gives us last day of current month
+  
   extracted.forEach(({ companyName, net }) => {
     const comp = companies.find(c => clean(c.company_name) === companyName);
     if (!comp) return;
 
-    const start = new Date(comp.start_date);
-    const isNew =
-      start.toLocaleString("default", { month: "long" }) === repMonth &&
-      String(start.getFullYear()) === repYear;
+    const startDate = new Date(comp.start_date);
+    
+    // Calculate 12 months from start date
+    const twelveMonthsFromStart = new Date(startDate);
+    twelveMonthsFromStart.setFullYear(startDate.getFullYear() + 1);
+    
+    // Company qualifies as "New" if report date is within 12 months of start date (inclusive)
+    const isNew = reportDate >= startDate && reportDate <= twelveMonthsFromStart;
 
     const ratePct = isNew ? rates.New : rates.Legacy;
     const owner   = comp.owner;
     totals[owner] = (totals[owner] || 0) + net * (ratePct / 100);
   });
   return totals;
+}
+
+// Helper function to convert month name to number
+function getMonthNumber(monthName) {
+  const months = {
+    'January': 0, 'February': 1, 'March': 2, 'April': 3,
+    'May': 4, 'June': 5, 'July': 6, 'August': 7,
+    'September': 8, 'October': 9, 'November': 10, 'December': 11
+  };
+  return months[monthName];
 }
 
 const clean = s => String(s||"").toLowerCase().trim().replace(/[\u200B-\u200D\uFEFF]/g,"");
